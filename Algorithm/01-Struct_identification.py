@@ -22,14 +22,12 @@ namelist_input = pd.read_csv('../Data/Input_data/namelist_input.txt', sep=' ', h
 def get_namelist_var(name):
     return namelist_input[namelist_input.variable == name].value.values[0]
 
-use_subset = int(get_namelist_var('use_subset'))                       # 1 - Use the full input data, 2 - Use a time-cut of the input data
-if use_subset == 1:
-    year_i = int(get_namelist_var('year_i')); year_f = int(get_namelist_var('year_f'))
-    year_file_i = year_i; year_file_f = year_f
-elif use_subset == 2:
-    year_i = int(get_namelist_var('year_i')); year_f = int(get_namelist_var('year_f'))
-    year_file_i = int(get_namelist_var('year_file_i')); year_file_f = int(get_namelist_var('year_file_f'))
-
+year_file_i = int(get_namelist_var('year_file_i'))                     # First year on data file
+year_file_f = int(get_namelist_var('year_file_f'))                     # Last year on data file
+date_init = str(get_namelist_var('date_init'))                         # Start date of analysis
+date_end = str(get_namelist_var('date_end'))                           # End date of analysis
+year_i = date_init[:4]                                                 # Start year of analysis
+year_f = date_end[:4]                                                  # End year of analysis
 res = float(get_namelist_var('res'))                                   # Data resolution
 region = get_namelist_var('region')                                    # Hemisphere to be analysed
 data_type = get_namelist_var('data_type')                              # Data origin (ERA5 or NCAR, atm)
@@ -250,8 +248,7 @@ def compute_moving_LATmin(day_n):
 original_data = xr.open_dataset(f'../Data/Input_data/Z500_{year_file_i}_{year_file_f}_{region}_{data_type}.nc')
 
 #### Cut the subset if needed
-if use_subset == 2:
-    original_data = original_data.sel(time=slice(str(year_i), str(year_f)))
+original_data = original_data.sel(time=slice(date_init, date_end))
 
 #### Invert the data array if needed and open the array
 if region == 'NH':

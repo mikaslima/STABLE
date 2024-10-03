@@ -19,18 +19,17 @@ namelist_input = pd.read_csv('../Data/Input_data/namelist_input.txt', sep=' ', h
 def get_namelist_var(name):
     return namelist_input[namelist_input.variable == name].value.values[0]
 
-use_subset = int(get_namelist_var('use_subset'))    # 1 - Use the full input data, 2 - Use a time-cut of the input data
-if use_subset == 1:
-    year_i = int(get_namelist_var('year_i')); year_f = int(get_namelist_var('year_f'))
-    year_file_i = year_i; year_file_f = year_f
-elif use_subset == 2:
-    year_i = int(get_namelist_var('year_i')); year_f = int(get_namelist_var('year_f'))
-    year_file_i = int(get_namelist_var('year_file_i')); year_file_f = int(get_namelist_var('year_file_f'))
-    
+year_file_i = int(get_namelist_var('year_file_i'))                     # First year on data file
+year_file_f = int(get_namelist_var('year_file_f'))                     # Last year on data file
+date_init = str(get_namelist_var('date_init'))                         # Start date of analysis
+date_end = str(get_namelist_var('date_end'))                           # End date of analysis
+year_i = date_init[:4]                                                 # Start year of analysis
+year_f = date_end[:4]                                                  # End year of analysis
 res = float(get_namelist_var('res'))                                   # Data resolution
 region = get_namelist_var('region')                                    # Hemisphere to be analysed
 data_type = get_namelist_var('data_type')                              # Data origin (ERA5 or NCAR, atm)
 n_days_before = int(get_namelist_var('n_days_before'))                 # Number of days to be captured to compute LATmin
+get_masks = int(get_namelist_var('get_masks'))                         # Retrieve the masks of the events and the 2D intensity index
 
 
 #%% 1. Functions
@@ -106,8 +105,7 @@ with open(f'../Data/Output_data/02-TrackedStruct_{year_i}_{year_f}_{region}.pkl'
 original_data = xr.open_dataset(f'../Data/Input_data/Z500_{year_file_i}_{year_file_f}_{region}_{data_type}.nc')
 
 #### Cut the subset if needed
-if use_subset == 2:
-    original_data = original_data.sel(time=slice(str(year_i), str(year_f)))
+original_data = original_data.sel(time=slice(date_init, date_end))
   
 #### Invert the data array if needed and open the array
 if region == 'NH':
@@ -158,8 +156,9 @@ z500_max = []                # std Z500 maximum
 z500_mean = []               # std Z500 mean
 
 #### Masks for structs and 2D intensity
-struct_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
-BI_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
+if get_masks == 1:
+    struct_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
+    BI_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
 
 #%%% 4.2. Get data
 for day_n in tqdm(range(len(time))):
@@ -168,9 +167,10 @@ for day_n in tqdm(range(len(time))):
     else:
         data_string = time[day_n].astype(str)[:10]
         dict_day = data_dict[data_string]
-
-        struct_array_tosave[day_n] = dict_day['Struct_array']
-        BI_array_tosave[day_n] = Blocking_intensity_index(dict_day['Struct_array'], original_array[day_n])
+        
+        if get_masks == 1:
+            struct_array_tosave[day_n] = dict_day['Struct_array']
+            BI_array_tosave[day_n] = Blocking_intensity_index(dict_day['Struct_array'], original_array[day_n])
 
         for strct_id in dict_day.keys():
             if strct_id != 'Struct_array' and strct_id not in Struct_ID:
@@ -364,22 +364,23 @@ blocks.to_csv(f'../Data/Output_data/03-Blocking_daily_catalogue_{year_i}_{year_f
 
 #%% 4.4. Create netcdfs for masks
 #### Create dataset considering the region chosen
-if region == 'NH':
-    data = xr.Dataset(
-        data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave),
-                         Intensity=(['time', 'lat', 'lon'], BI_array_tosave)),
-        coords = dict(time=time, lat=lat, lon=lon),
-        attrs = dict(description='Structures and Blocking intensity based on Sousa et al 2021')
-        )
-elif region == 'SH':
-    data = xr.Dataset(
-        data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave[:,::-1,:]),
-                         Intensity=(['time', 'lat', 'lon'], BI_array_tosave[:,::-1,:])),
-        coords = dict(time=time, lat=-lat[::-1], lon=lon),
-        attrs = dict(description='Structures and Blocking intensity based on Sousa et al 2021')
-        )
-
-data.to_netcdf(f'../Data/Output_data/03-CatalogueMasks_{year_i}_{year_f}_{region}.nc')
+if get_masks == 1:
+    if region == 'NH':
+        data = xr.Dataset(
+            data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave),
+                             Intensity=(['time', 'lat', 'lon'], BI_array_tosave)),
+            coords = dict(time=time, lat=lat, lon=lon),
+            attrs = dict(description='Structures and Blocking intensity based on Sousa et al 2021')
+            )
+    elif region == 'SH':
+        data = xr.Dataset(
+            data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave[:,::-1,:]),
+                             Intensity=(['time', 'lat', 'lon'], BI_array_tosave[:,::-1,:])),
+            coords = dict(time=time, lat=-lat[::-1], lon=lon),
+            attrs = dict(description='Structures and Blocking intensity based on Sousa et al 2021')
+            )
+    
+    data.to_netcdf(f'../Data/Output_data/03-CatalogueMasks_{year_i}_{year_f}_{region}.nc')
 
 
 #%% 5. Create dataframe for event catalogue (this is simpler, just means, maxs, mins, and counts)

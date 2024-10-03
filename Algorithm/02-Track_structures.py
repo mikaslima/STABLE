@@ -2,7 +2,7 @@
 #
 #
 # Script that tracks the structures in time according to the conditions in Sousa et al. (2021)
-# Takes LATmin and continuous structure information as input
+# Takes continuous structure information as input
 # Outputs a pkl with continuous structures in space and time respecting structure thresholds, as well as their information
 #
 #
@@ -19,23 +19,20 @@ namelist_input = pd.read_csv('../Data/Input_data/namelist_input.txt', sep=' ', h
 def get_namelist_var(name):
     return namelist_input[namelist_input.variable == name].value.values[0]
 
-use_subset = int(get_namelist_var('use_subset'))    # 1 - Use the full input data, 2 - Use a time-cut of the input data
-if use_subset == 1:
-    year_i = int(get_namelist_var('year_i')); year_f = int(get_namelist_var('year_f'))
-    year_file_i = year_i; year_file_f = year_f
-elif use_subset == 2:
-    year_i = int(get_namelist_var('year_i')); year_f = int(get_namelist_var('year_f'))
-    year_file_i = int(get_namelist_var('year_file_i')); year_file_f = int(get_namelist_var('year_file_f'))
-
+year_file_i = int(get_namelist_var('year_file_i'))                     # First year on data file
+year_file_f = int(get_namelist_var('year_file_f'))                     # Last year on data file
+date_init = str(get_namelist_var('date_init'))                         # Start date of analysis
+date_end = str(get_namelist_var('date_end'))                           # End date of analysis
+year_i = date_init[:4]                                                 # Start year of analysis
+year_f = date_end[:4]                                                  # End year of analysis
 res = float(get_namelist_var('res'))                                   # Data resolution
 region = get_namelist_var('region')                                    # Hemisphere to be analysed
 area_threshold = float(get_namelist_var('area_threshold'))             # Overlap from structures in following days
 persistence = float(get_namelist_var('persistence'))                   # Minimum number of days a structure needs to exist
 
-# Tracking method parameters (refer to REAME or ppt for further explanation):
+# Tracking method parameters (refer to README or ppt for further explanation):
 # 1 considers excedance of the area_threshold in the day of the analysis or next (as in Sousa et al., 2021);
 # 2 considers excedance in both days;
-# 3 considers only on the next day and 4 on the day of the analysis.
 tracking_method = int(get_namelist_var('tracking_method'))
 
 
@@ -190,18 +187,6 @@ for day_n in tqdm(range(len(time))):
                                         valid_area_after.append(i)
                                         valid_area_before.append(j)
 
-                                elif tracking_method == 3:           #### Checks if overlapping structure exceeds the threshold (typically 50%) compared to the next day
-                                    if i >= area_threshold:
-                                        valid_structs.append(k)
-                                        valid_area_after.append(i)
-                                        valid_area_before.append(j)
-
-                                elif tracking_method == 4:           #### Checks if overlapping structure exceeds the threshold (typically 50%) compared to the day of the analysis
-                                    if j >= area_threshold:
-                                        valid_structs.append(k)
-                                        valid_area_after.append(i)
-                                        valid_area_before.append(j)
-
                             #### Check if there were any found and proceed with the analysis
                             if len(valid_structs) >= 1:
                                 if len(valid_structs) == 1:      #### In the case of just a single valid structure there are no problems
@@ -229,15 +214,6 @@ for day_n in tqdm(range(len(time))):
                                     elif tracking_method == 2:           #### Checks if overlapping structure exceeds the threshold (typically 50%) compared to the next day AND the day of the analysis (Technically more correct approach)
                                         biggest = max(valid_area_after*valid_area_before)
                                         which_next = valid_structs[np.where(valid_area_after*valid_area_before == biggest)[0][0]]   #### Which structure "heirs" the blocking to the next step
-
-                                    elif tracking_method == 3:           #### Checks if overlapping structure exceeds the threshold (typically 50%) compared to the next day
-                                        biggest = max(valid_area_after)
-                                        which_next = valid_structs[np.where(valid_area_after == biggest)[0][0]]   #### Which structure "heirs" the blocking to the next step
-
-                                    elif tracking_method == 4:           #### Checks if overlapping structure exceeds the threshold (typically 50%) compared to the day of the analysis
-                                        biggest = max(valid_area_before)
-                                        which_next = valid_structs[np.where(valid_area_before == biggest)[0][0]]   #### Which structure "heirs" the blocking to the next step
-
 
                                 #### Check for this day if there are any already analysed blockings
                                 list_keys = []
