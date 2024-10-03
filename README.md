@@ -56,30 +56,25 @@ To run successfully the code please edit the namelist according to your needs an
 
 # Namelist description
 
-&nbsp; | Name           | Description
+Name           | Description
 -------|----------------|--------------------------------------
-&nbsp; | use_subset          | (1) Uses the full set of data from the input file; (2) Use a subset of data from the input data file (this enables the "year_i" and "year_f" inputs)
-&nbsp; | year_i          | (any number, int) year within the file to start the analysis, not used if "use_subset" is "1"
-&nbsp; | $r$            | Radius of a circle
-&nbsp; | $r^2$          | Value of r squared
-&nbsp; | $g_{variable}$ | Growth rate of "variable"
+use_subset          | (1) Uses the full set of data from the input file; (2) Use a subset of data from the input data file (this enables the "year_i" and "year_f" inputs)
+year_i              | (any number, int) year within the file to start the analysis, not used if "use_subset" is "1"
+year_f              | (any number, int) year within the file to end the analysis, not used if "use_subset" is "1"
+year_file_i         | (any number, int) first year of the data file
+year_file_i         | (any number, int) last year of the data file
+res                 | (any number, float) resolution of the data (e.g. 2.5, 1, 0.25)
+region              | (NH) Northern Hemisphere or (SH) Southern Hemisphere
+data_type           | (any string) name of institution of the data, in the name of the file
+min_struct_area     | (any number, int) threshold total area for the structures (usually 500000)
+n_days_before       | (any number, int) number of days before the analysis day to compute the LATmin (usually 15)
+horizontal_LATmin   | (1) Uses a horizontal LATmin as in Sousa et al. (2021); (2) Uses a variable LATmin with longitude
+omega_hybrid_method | (1) Uses the same condition to identify hybrid blocks as in Sousa et al. (2021); (2) Uses a new condition, which considers the Rex area within the structure.
+consider_polar      | (1) Considers polar area the same way as in Sousa et al. (2021); (2) Computes the gradient northward of the (90-delta) boundary and extends the structure conditions over this boundary, but cut the area poleward of 85º for continuity problems; (3) Completely ignores the area poleward of (90-delta)
+lat_polar_circle    | (any number, float or int, ideally between ~60 up to 90) Latitude of the polar circle to consider a Rex block to be of a polar nature (usually is set to 75)
+delta               | (any number, float or int) Delta in degrees to compute the gradients (usually set to 15 degrees)
+tracking_method     | (1) Use a "OR" condition, either the overlapping area is exceeding the "area_threshold" in the day of the analysis or the previous; (2) Use a "AND" condition, the overlapping area must exceed the "area_threshold" in both of the day of the analysis and the previous.
+area_threshold      | (float, between 0 and 1) Fraction of overlap needed to consider the evolution of the structure (usually set at 0.5)
+persistence         | (any number, int) Minimum number of days for an atmospheric blocking to be considered an event
 ---------------------------------------------------------------
 
-"use_subset" - (1) Uses the full set of data from the input file; (2) Use a subset of data from the input data file (this enables the "year_i" and "year_f" inputs)
-"year_i" - (any number, int) year within the file to start the analysis, not used if "use_subset" is "1"
-"year_f" - (any number, int) year within the file to end the analysis, not used if "use_subset" is "1"
-"year_file_i" - (any number, int) first year of the data file
-"year_file_i" - (any number, int) last year of the data file
-"res" - (any number, float) resolution of the data (e.g. 2.5, 1, 0.25)
-"region" - (NH) Northern Hemisphere or (SH) Southern Hemisphere
-"data_type" - (any string) name of institution of the data, in the name of the file
-"min_struct_area" - (any number, int) threshold total area for the structures (usually 500000)
-"n_days_before" - (any number, int) number of days before the analysis day to compute the LATmin (usually 15)
-"horizontal_LATmin" - (1) Uses a horizontal LATmin as in Sousa et al. (2021); (2) Uses a variable LATmin with longitude
-"omega_hybrid_method" - (1) Uses the same condition to identify hybrid blocks as in Sousa et al. (2021); (2) Uses a new condition, which considers the Rex area within the structure.
-"consider_polar" - (1) Considers polar area the same way as in Sousa et al. (2021); (2) Computes the gradient northward of the (90-delta) boundary and extends the structure conditions over this boundary, but cut the area poleward of 85º for continuity problems; (3) Completely ignores the area poleward of (90-delta)
-"lat_polar_circle" - (any number, float or int, ideally between ~60 up to 90) Latitude of the polar circle to consider a Rex block to be of a polar nature (usually is set to 75)
-"delta" - (any number, float or int) Delta in degrees to compute the gradients (usually set to 15 degrees)
-"tracking_method" - (1) Use a "OR" condition, either the overlapping area is exceeding the "area_threshold" in the day of the analysis or the previous; (2) Use a "AND" condition, the overlapping area must exceed the "area_threshold" in both of the day of the analysis and the previous.
-"area_threshold" - (float, between 0 and 1) Fraction of overlap needed to consider the evolution of the structure (usually set at 0.5)
-"persistence" - (any number, int) Minimum number of days for an atmospheric blocking to be considered an event
