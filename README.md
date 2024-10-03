@@ -18,7 +18,7 @@ or
 
   *  [![python](https://img.shields.io/badge/Python-3-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org) and the required modules on a cluster
 
-## The packages required to run CyTRACK are:
+## The packages required to run BLOCS are:
   
 ```
 - numpy
@@ -30,4 +30,11 @@ or
 ```
 # Installation
 
-### First Method
+1 - Clone BLOCS repository.
+
+ ```
+git clone https://github.com/mikaslima/BLOCS.git
+  ```
+
+2 - Verify you have installed all packages requiered for BLOCS. If you use an Anaconda environment, please be sure you have activated the environment.
+
