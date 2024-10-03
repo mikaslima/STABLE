@@ -56,8 +56,8 @@ To run successfully the code please edit the namelist according to your needs an
 
 # Namelist description
 
-Name           | Description
--------|----------------|--------------------------------------
+Name                | Description
+--------------------|--------------------------------------
 use_subset          | (1) Uses the full set of data from the input file; (2) Use a subset of data from the input data file (this enables the "year_i" and "year_f" inputs)
 year_i              | (any number, int) year within the file to start the analysis, not used if "use_subset" is "1"
 year_f              | (any number, int) year within the file to end the analysis, not used if "use_subset" is "1"
