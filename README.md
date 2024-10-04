@@ -47,6 +47,8 @@ git clone https://github.com/mikaslima/BLOCS.git
 
 The code takes any resolution, regularly spaced data (tested with 2.5º, 1º, and 0.25º). Ideally, the name should be "Z500_(start year)_(end year)_(hemisphere)_(name of institution)" for example: "Z500_1940_2023_NH_ECMWF.nc". The variable names inside the file should be "z" for the geopotential at 500 hPa in units of [m], "time" as datetime format [YYYY-MM-DD], "lat", and "lon" for the coordinates in degrees.
 
+In this release, you can find a 2-year (2019-2020) dataset from NCAR, at 2.5º resolution, for the Northern Hemisphere, ready to run. This example data returns a catalogue that can be seen in the Output_data. Additionally, example figures are shown in Figures. Larger 80-year datasets are available at [![Zenodo: https://doi.org/10.5281/zenodo.13891996](https://img.shields.io/badge/Zenodo-10.5281/zenodo.13891996-blue)](https://doi.org/10.5281/zenodo.13891996).
+
 ## Code
 
 The algorithm itself is divided in 3 major steps/scripts: Daily structure identification, structure tracking in time, and production of the catalogues with general statistic (by daily observation, event) and the respective observation masks.
