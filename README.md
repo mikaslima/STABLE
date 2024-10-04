@@ -47,11 +47,11 @@ git clone https://github.com/mikaslima/BLOCS.git
 
 The code takes any resolution, regularly spaced data (tested with 2.5º, 1º, and 0.25º). Ideally, the name should be "Z500_(start year)_(end year)_(hemisphere)_(name of institution)" for example: "Z500_1940_2023_NH_ECMWF.nc". The variable names inside the file should be "z" for the geopotential at 500 hPa in units of [m], "time" as datetime format [YYYY-MM-DD], "lat", and "lon" for the coordinates in degrees.
 
-In this release, you can find a 2-year (2019-2020) dataset from NCAR, at 2.5º resolution, for the Northern Hemisphere, ready to run. This example data returns a catalogue that can be seen in the Output_data. Additionally, example figures are shown in Figures. Larger 80-year datasets are available at [![Zenodo: https://doi.org/10.5281/zenodo.13891996](https://img.shields.io/badge/Zenodo-10.5281/zenodo.13891996-blue)](https://doi.org/10.5281/zenodo.13891996).
+In this release, you can find a 2-year (2019-2020) dataset from NCAR, at 2.5º resolution, for the Northern Hemisphere, ready to run. This example data returns a catalogue that can be seen in the ```Data/Output_data```. Additionally, example figures are shown in ```Figures```. Larger 80-year datasets are available at [![Zenodo: https://doi.org/10.5281/zenodo.13891996](https://img.shields.io/badge/Zenodo-10.5281/zenodo.13891996-blue)](https://doi.org/10.5281/zenodo.13891996).
 
 ## Code
 
-The algorithm itself is divided in 3 major steps/scripts: Daily structure identification, structure tracking in time, and production of the catalogues with general statistic (by daily observation, event) and the respective observation masks.
+The ```Algorithm``` itself is divided in 3 major steps/scripts: Daily structure identification, structure tracking in time, and production of the catalogues with general statistic (by daily observation, event) and the respective observation masks.
 In each of these, the preamble contains a set of variables to be changed by the user in the "Data/Input_data/namelist_input.txt" file (see description below).
 These codes may have significant departures from the MATLAB application of [Sousa et al. (2021)](https://doi.org/10.1175/JCLI-D-20-0658.1), the ones I considered are marked as such in the code.
 To run successfully the code please edit the namelist according to your needs and run the scripts in succession.
@@ -80,3 +80,8 @@ area_threshold      |  float        |   ]0,1[     | Fraction of overlap needed t
 persistence         |  int          |   any       | Minimum number of days for an atmospheric blocking to be considered an event
 ---------------------------------------------------------------
 
+# Post processing examples
+
+Also available are a series of figures to study the obtainable catalogues, in ```Post_processing```. For example, the climatology obtained through the given example dataset:
+
+![plot](./Figures/02-Rec_Fig7(climatology).jpg)
