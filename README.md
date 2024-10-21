@@ -62,7 +62,7 @@ Name                |  Type         |   Values    |   Replicate Sousa et al. (20
 --------------------|---------------|-------------|--------------------------------------|----------------------
 use_subset          |  int          |   1,2       |   1,2                                |   (1) Uses the full set of data from the input file<br>(2) Use a subset of data from the input data file (this enables the "year_i" and "year_f" inputs)
 year_file_i         |  int          |   any       |   any                                |    first year of the data file
-year_file_i         |  int          |   any       |   any                                |    last year of the data file
+year_file_f         |  int          |   any       |   any                                |    last year of the data file
 date_init           |  str          |   any       |   '1950-01-01'                       |    start date of the analysis
 date_end            |  str          |   any       |   '2020-12-31'                       |    end date of the analysis
 res                 |  float        |   any       |   2.5                                |    resolution of the data (e.g., 2.5, 1, 0.25)
