@@ -60,7 +60,7 @@ To run successfully the code please edit the namelist according to your needs an
 
 Name                |  Type         |   Values    |   Replicate Sousa et al. (2021)      |     Description
 --------------------|---------------|-------------|--------------------------------------|----------------------
-use_subset          |  int          |   1,2       |   1,2                                |   (1) Uses the full set of data from the input file<br>(2) Use a subset of data from the input data file (this enables the "year_i" and "year_f" inputs)
+use_subset          |  int          |   1,2       |   1,2                                |   (1) Uses the full set of data from the input file<br>(2) Use a subset of data from the input data file
 year_file_i         |  int          |   any       |   any                                |    first year of the data file
 year_file_f         |  int          |   any       |   any                                |    last year of the data file
 date_init           |  str          |   any       |   '1950-01-01'                       |    start date of the analysis
