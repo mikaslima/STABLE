@@ -79,6 +79,7 @@ delta               |  float or int |   any       |   15                        
 tracking_method     |  int          |   1,2       |   1                                  |    (1) Use a "OR" condition, either the overlapping area is exceeding the "area_threshold" in the day of the analysis or the previous<br>(2) Use a "AND" condition, the overlapping area must exceed the "area_threshold" in both of the day of the analysis and the previous.
 area_threshold      |  float        |   ]0,1[     |   0.5                                |    Fraction of overlap needed to consider the evolution of the structure (usually set at 0.5)
 persistence         |  int          |   any       |   4                                  |    Minimum number of days for an atmospheric blocking to be considered an event
+get_masks           |  int          |   1,2       |   1,2                                |    (1) Retrieve the masks of the events and the 2D intensity index
 -----------------------------------------------------------------------------------------------------------------
 
 # Post processing examples
