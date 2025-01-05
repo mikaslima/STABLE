@@ -29,6 +29,7 @@ or
 - os
 - pickle
 - pandas
+- tqdm
 ```
 
 # Installation
