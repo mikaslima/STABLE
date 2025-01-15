@@ -61,7 +61,6 @@ To run successfully the code please edit the namelist according to your needs an
 
 Name                |  Type         |   Values    |   Replicate Sousa et al. (2021)      |     Description
 --------------------|---------------|-------------|--------------------------------------|----------------------
-use_subset          |  int          |   1,2       |   1,2                                |   (1) Uses the full set of data from the input file<br>(2) Use a subset of data from the input data file
 year_file_i         |  int          |   any       |   any                                |    first year of the data file
 year_file_f         |  int          |   any       |   any                                |    last year of the data file
 date_init           |  str          |   any       |   '1950-01-01'                       |    start date of the analysis
@@ -70,6 +69,8 @@ res                 |  float        |   any       |   2.5                       
 region              |  string       |   NH, SH    |   NH, SH                             |    (NH) Northern Hemisphere<br>(SH) Southern Hemisphere
 data_type           |  string       |   any       |   NCAR                               |    name of institution of the data, in the name of the file
 min_struct_area     |  int          |   any       |   500000                             |    threshold total area for the structures (usually 500000)
+use_max_area        |  int          |   0,1       |   0                                  |    (0) Don't use a maximum area threshold (1) Use a maximum area threshold
+max_struct_area     |  int          |   any       |   -                                  |    maximum threshold total area for the structures
 n_days_before       |  int          |   any       |   15                                 |    number of days before the analysis day to compute the LATmin (usually 15)
 horizontal_LATmin   |  int          |   1,2       |   1                                  |    (1) Uses a horizontal LATmin as in Sousa et al. (2021)<br>(2) Uses a variable LATmin with longitude
 omega_hybrid_method |  int          |   1,2       |   1                                  |    (1) Uses the same condition to identify hybrid blocks as in Sousa et al. (2021)<br>(2) Uses a new condition, which considers the Rex area within the structure.
