@@ -7,6 +7,8 @@ res 2.5
 region NH
 data_type NCAR
 min_struct_area 500000
+use_max_area 0
+max_struct_area 4000000
 n_days_before 15
 horizontal_LATmin 1
 omega_hybrid_method 1
@@ -16,4 +18,7 @@ delta 15
 tracking_method 1
 area_threshold 0.5
 persistence 4
-get_masks 2
+full_ridges 0
+full_polar 0
+catalogue_single 0
+get_masks 0
