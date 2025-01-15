@@ -82,7 +82,7 @@ persistence         |  int          |   any       |   4                         
 full_ridges         |  int          |   0,1       |   0                                  |    (0) Consider events that only have subtropical ridges as observations (1) Disregard these types of events
 full_polar          |  int          |   0,1       |   0                                  |    (0) Consider events that only have polar blocks (1) Disregard these types of events
 catalogue_single    |  int          |   0,1       |   0                                  |    (0) Catalogue full events and their daily components (1) Catalogue single occurrences only
-get_masks           |  int          |   1,2       |   1,2                                |    (1) Retrieve the masks of the events and the 2D intensity index
+get_masks           |  int          |   0,1       |   0,1                                |    (0) Disregard masks (1) Retrieve the masks of the events and the 2D intensity index
 -----------------------------------------------------------------------------------------------------------------
 
 # Post processing examples
