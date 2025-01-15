@@ -2,7 +2,7 @@
 #
 #
 # Script that tracks the structures in time according to the conditions in Sousa et al. (2021)
-# Takes continuous structure information as input
+# Takes LATmin and continuous structure information as input
 # Outputs a pkl with continuous structures in space and time respecting structure thresholds, as well as their information
 #
 #
@@ -30,10 +30,14 @@ region = get_namelist_var('region')                                    # Hemisph
 area_threshold = float(get_namelist_var('area_threshold'))             # Overlap from structures in following days
 persistence = float(get_namelist_var('persistence'))                   # Minimum number of days a structure needs to exist
 
-# Tracking method parameters (refer to README or ppt for further explanation):
+# Tracking method parameters (refer to REAME or ppt for further explanation):
 # 1 considers excedance of the area_threshold in the day of the analysis or next (as in Sousa et al., 2021);
 # 2 considers excedance in both days;
+# 3 considers only on the next day, and 4 on the day of the analysis.
 tracking_method = int(get_namelist_var('tracking_method'))
+
+full_ridges = int(get_namelist_var('full_ridges'))                     # 0 - Consider full ridge events, 1 - Disregard full ridge events
+full_polar = int(get_namelist_var('full_polar'))                       # 0 - Consider full polar events, 1 - Disregard full polar events
 
 
 #%% 1. Functions
@@ -187,6 +191,18 @@ for day_n in tqdm(range(len(time))):
                                         valid_area_after.append(i)
                                         valid_area_before.append(j)
 
+                                elif tracking_method == 3:           #### Checks if overlapping structure exceeds the threshold (typically 50%) compared to the next day
+                                    if i >= area_threshold:
+                                        valid_structs.append(k)
+                                        valid_area_after.append(i)
+                                        valid_area_before.append(j)
+
+                                elif tracking_method == 4:           #### Checks if overlapping structure exceeds the threshold (typically 50%) compared to the day of the analysis
+                                    if j >= area_threshold:
+                                        valid_structs.append(k)
+                                        valid_area_after.append(i)
+                                        valid_area_before.append(j)
+
                             #### Check if there were any found and proceed with the analysis
                             if len(valid_structs) >= 1:
                                 if len(valid_structs) == 1:      #### In the case of just a single valid structure there are no problems
@@ -214,6 +230,15 @@ for day_n in tqdm(range(len(time))):
                                     elif tracking_method == 2:           #### Checks if overlapping structure exceeds the threshold (typically 50%) compared to the next day AND the day of the analysis (Technically more correct approach)
                                         biggest = max(valid_area_after*valid_area_before)
                                         which_next = valid_structs[np.where(valid_area_after*valid_area_before == biggest)[0][0]]   #### Which structure "heirs" the blocking to the next step
+
+                                    elif tracking_method == 3:           #### Checks if overlapping structure exceeds the threshold (typically 50%) compared to the next day
+                                        biggest = max(valid_area_after)
+                                        which_next = valid_structs[np.where(valid_area_after == biggest)[0][0]]   #### Which structure "heirs" the blocking to the next step
+
+                                    elif tracking_method == 4:           #### Checks if overlapping structure exceeds the threshold (typically 50%) compared to the day of the analysis
+                                        biggest = max(valid_area_before)
+                                        which_next = valid_structs[np.where(valid_area_before == biggest)[0][0]]   #### Which structure "heirs" the blocking to the next step
+
 
                                 #### Check for this day if there are any already analysed blockings
                                 list_keys = []
@@ -243,9 +268,63 @@ for day_n in tqdm(range(len(time))):
                                         continue_y = False
 
                                     elif count_n >= persistence:
-
                                         struct_3d_arr = np.array(struct_3d_arr)
+                                        
+                                        ############ Block to check if event is all ridges or polar blocks
+                                        AB_types = []
+                                        for i, (date_to_save, num_of_struct) in enumerate(saved_struct_nums):
+                                            AB_types.append(struct_type[date_to_save][str(num_of_struct)])
+                                        count_polar = np.sum(np.array(AB_types) == 'Rex block (polar)')
+                                        count_ridge = np.sum(np.array(AB_types) == 'Ridge')
+                                        
+                                        if count_ridge == len(saved_struct_nums) and full_ridges == 1:
+                                            continue_y = False
+                                        
+                                        elif count_polar == len(saved_struct_nums) and full_polar == 1:
+                                            continue_y = False
+                                        
+                                        else:
+                                            ############ Block to save data
+                                            structs_in_year += 1
+                                            give_id = f'{data_string[:4]}{str(structs_in_year).zfill(3)}'
+    
+                                            for i, (date_to_save, num_of_struct) in enumerate(saved_struct_nums):
+                                                n_to_save = np.where(pd.Series(time.astype(str)).str[:10].values == date_to_save)[0][0]
+                                                temp_info = struct_type[date_to_save]
+                                                temp_mask = struct_mask_array[n_to_save]
+    
+                                                data_dict[date_to_save][give_id] = {'type': temp_info[str(num_of_struct)],
+                                                                                    'parent': str(num_of_struct),
+                                                                                    'step': i+1,
+                                                                                    'duration': len(saved_struct_nums)}
+    
+                                                data_dict[date_to_save]['Struct_array'][temp_mask == num_of_struct] = np.float32(give_id)
+                                            ############
+                                            continue_y = False
+                                        
 
+                            #### If there are no valid overlapping structures then end that structure's analysis
+                            elif len(valid_structs) == 0:
+                                if count_n < persistence:          #### If the biggest overlapping area does not exceed the threshold and there are not enough days in the analysis drop the tentative blocking
+                                    continue_y = False
+
+                                elif count_n >= persistence:       #### If the biggest overlapping area does not exceed the threshold but the structure is semi-stationary save the data, new blocking found!
+                                    struct_3d_arr = np.array(struct_3d_arr)
+                                    
+                                    ############ Block to check if event is all ridges or polar blocks
+                                    AB_types = []
+                                    for i, (date_to_save, num_of_struct) in enumerate(saved_struct_nums):
+                                        AB_types.append(struct_type[date_to_save][str(num_of_struct)])
+                                    count_polar = np.sum(np.array(AB_types) == 'Rex block (polar)')
+                                    count_ridge = np.sum(np.array(AB_types) == 'Ridge')
+                                    
+                                    if count_ridge == len(saved_struct_nums) and full_ridges == 1:
+                                        continue_y = False
+                                    
+                                    elif count_polar == len(saved_struct_nums) and full_polar == 1:
+                                        continue_y = False
+                                    
+                                    else:
                                         ############ Block to save data
                                         structs_in_year += 1
                                         give_id = f'{data_string[:4]}{str(structs_in_year).zfill(3)}'
@@ -264,14 +343,28 @@ for day_n in tqdm(range(len(time))):
                                         ############
                                         continue_y = False
 
-                            #### If there are no valid overlapping structures then end that structure's analysis
-                            elif len(valid_structs) == 0:
-                                if count_n < persistence:          #### If the biggest overlapping area does not exceed the threshold and there are not enough days in the analysis drop the tentative blocking
+                        else:     #### if no structure shares area then end and save data if conditions are met
+                            if count_n < persistence:
+                                continue_y = False
+
+                            elif count_n >= persistence:
+
+                                struct_3d_arr = np.array(struct_3d_arr)
+                                
+                                ############ Block to check if event is all ridges or polar blocks
+                                AB_types = []
+                                for i, (date_to_save, num_of_struct) in enumerate(saved_struct_nums):
+                                    AB_types.append(struct_type[date_to_save][str(num_of_struct)])
+                                count_polar = np.sum(np.array(AB_types) == 'Rex block (polar)')
+                                count_ridge = np.sum(np.array(AB_types) == 'Ridge')
+                                
+                                if count_ridge == len(saved_struct_nums) and full_ridges == 1:
                                     continue_y = False
-
-                                elif count_n >= persistence:       #### If the biggest overlapping area does not exceed the threshold but the structure is semi-stationary save the data, new blocking found!
-                                    struct_3d_arr = np.array(struct_3d_arr)
-
+                                
+                                elif count_polar == len(saved_struct_nums) and full_polar == 1:
+                                    continue_y = False
+                                
+                                else:
                                     ############ Block to save data
                                     structs_in_year += 1
                                     give_id = f'{data_string[:4]}{str(structs_in_year).zfill(3)}'
@@ -287,18 +380,32 @@ for day_n in tqdm(range(len(time))):
                                                                             'duration': len(saved_struct_nums)}
 
                                         data_dict[date_to_save]['Struct_array'][temp_mask == num_of_struct] = np.float32(give_id)
-
                                     ############
                                     continue_y = False
 
-                        else:     #### if no structure shares area then end and save data if conditions are met
-                            if count_n < persistence:
+                    elif day_n+count_n >= len(time):    #### If the day being analysed exceeds the dataset end the analysis and check if data is to save or not
+
+                        if count_n < persistence:
+                            continue_y = False
+
+                        elif count_n >= persistence:
+
+                            struct_3d_arr = np.array(struct_3d_arr)
+                            
+                            ############ Block to check if event is all ridges or polar blocks
+                            AB_types = []
+                            for i, (date_to_save, num_of_struct) in enumerate(saved_struct_nums):
+                                AB_types.append(struct_type[date_to_save][str(num_of_struct)])
+                            count_polar = np.sum(np.array(AB_types) == 'Rex block (polar)')
+                            count_ridge = np.sum(np.array(AB_types) == 'Ridge')
+                            
+                            if count_ridge == len(saved_struct_nums) and full_ridges == 1:
                                 continue_y = False
-
-                            elif count_n >= persistence:
-
-                                struct_3d_arr = np.array(struct_3d_arr)
-
+                            
+                            elif count_polar == len(saved_struct_nums) and full_polar == 1:
+                                continue_y = False
+                            
+                            else:
                                 ############ Block to save data
                                 structs_in_year += 1
                                 give_id = f'{data_string[:4]}{str(structs_in_year).zfill(3)}'
@@ -314,37 +421,8 @@ for day_n in tqdm(range(len(time))):
                                                                         'duration': len(saved_struct_nums)}
 
                                     data_dict[date_to_save]['Struct_array'][temp_mask == num_of_struct] = np.float32(give_id)
-
                                 ############
                                 continue_y = False
-
-                    elif day_n+count_n >= len(time):    #### If the day being analysed exceeds the dataset end the analysis and check if data is to save or not
-
-                        if count_n < persistence:
-                            continue_y = False
-
-                        elif count_n >= persistence:
-
-                            struct_3d_arr = np.array(struct_3d_arr)
-
-                            ############ Block to save data
-                            structs_in_year += 1
-                            give_id = f'{data_string[:4]}{str(structs_in_year).zfill(3)}'
-
-                            for i, (date_to_save, num_of_struct) in enumerate(saved_struct_nums):
-                                n_to_save = np.where(pd.Series(time.astype(str)).str[:10].values == date_to_save)[0][0]
-                                temp_info = struct_type[date_to_save]
-                                temp_mask = struct_mask_array[n_to_save]
-
-                                data_dict[date_to_save][give_id] = {'type': temp_info[str(num_of_struct)],
-                                                                    'parent': str(num_of_struct),
-                                                                    'step': i+1,
-                                                                    'duration': len(saved_struct_nums)}
-
-                                data_dict[date_to_save]['Struct_array'][temp_mask == num_of_struct] = np.float32(give_id)
-
-                            ############
-                            continue_y = False
 
 
 #%% 5. Save data

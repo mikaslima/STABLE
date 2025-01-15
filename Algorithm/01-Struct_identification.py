@@ -31,7 +31,13 @@ year_f = date_end[:4]                                                  # End yea
 res = float(get_namelist_var('res'))                                   # Data resolution
 region = get_namelist_var('region')                                    # Hemisphere to be analysed
 data_type = get_namelist_var('data_type')                              # Data origin (ERA5 or NCAR, atm)
+
 min_struct_area = float(get_namelist_var('min_struct_area'))           # Minimum structure area to be captured
+use_max_area = int(get_namelist_var('use_max_area'))                   # 0 - Does not use a term for max area; 1 - Uses a threshold for area
+max_struct_area = float(get_namelist_var('max_struct_area'))           # Maximum structure area to be captured
+if use_max_area == 0:
+    max_struct_area = min_struct_area*10**5                            # Consider max area as very large number if term is not consider
+
 n_days_before = int(get_namelist_var('n_days_before'))                 # Number of days to be captured to compute LATmin
 horizontal_LATmin = int(get_namelist_var('horizontal_LATmin'))         # 1 - makes the computed LATmin be the same as Sousa et al., 2021; 2 - makes the new moving LATmin based on data from the last n_days_before
 omega_hybrid_method = int(get_namelist_var('omega_hybrid_method'))     # 1 - Simple distinction between omega and hybrid as described in Sousa et al. (2021), 2 - New distinction method with hybrids in mixed systems
@@ -403,7 +409,7 @@ for day_n in tqdm(range(len(time))):
 
             #### If structure is neither on pole or antimeridian, store its info
             struct_area = int(np.nansum(indv*area))
-            if struct_area >= min_struct_area:
+            if struct_area >= min_struct_area and struct_area < max_struct_area:
                 indv_iso_struct = indv*struct_array
 
                 #### Latitudinally extend rex region
@@ -525,7 +531,7 @@ for day_n in tqdm(range(len(time))):
 
             #### If structure has bigger area than threshold, store its info
             struct_area = int(np.nansum(indv*area))
-            if struct_area >= min_struct_area:
+            if struct_area >= min_struct_area and struct_area < max_struct_area:
                 indv_iso_struct = indv*antim_Structure
 
                 #### Latitudinally extend rex region
