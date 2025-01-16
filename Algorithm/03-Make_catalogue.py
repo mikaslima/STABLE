@@ -587,7 +587,7 @@ elif catalogue_single == 1:
     
     #### Masks for structs and 2D intensity
     if get_masks == 1:
-        struct_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
+        struct_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float64)
         BI_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
     
     #%%% 6.2. Get data
@@ -599,9 +599,9 @@ elif catalogue_single == 1:
             dict_day = data_dict[data_string]
             dict_day['Struct_array'] = struct_mask_array[day_n]
             
-            struct_array_tosave[day_n] = dict_day['Struct_array']
-            
-            BI_array_tosave[day_n] = Blocking_intensity_index(dict_day['Struct_array'], original_array[day_n])
+            if get_masks == 1:
+                struct_array_tosave[day_n] = dict_day['Struct_array']
+                BI_array_tosave[day_n] = Blocking_intensity_index(dict_day['Struct_array'], original_array[day_n])
             
             for strct_id in dict_day.keys():
                 if strct_id != 'Struct_array' and strct_id not in Struct_ID:
@@ -617,7 +617,9 @@ elif catalogue_single == 1:
                     
                     jul_day = pd.to_datetime(data_string).strftime('%j').zfill(3)
                     untracked_id = f'{data_string[:4]}{jul_day}{strct_id.zfill(2)}'
-                    struct_array_tosave[day_n] = np.where(struct_array_tosave[day_n]==int(strct_id), int(untracked_id), struct_array_tosave[day_n])
+                    
+                    if get_masks == 1:
+                        struct_array_tosave[day_n] = np.where(struct_array_tosave[day_n]==int(strct_id), int(untracked_id), struct_array_tosave[day_n])
                     Struct_ID.append(untracked_id)
                     Types.append(dict_day[strct_id])
                     min_lats.append(lats[np.where(struct_mask==1)].min())
