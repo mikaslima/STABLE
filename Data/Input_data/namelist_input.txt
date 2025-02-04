@@ -22,3 +22,4 @@ full_ridges 0
 full_polar 0
 catalogue_single 0
 get_masks 0
+save_latmin 1
