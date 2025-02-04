@@ -294,6 +294,8 @@ for day_n in tqdm(range(len(time))):
     #### First n_days_before days do not count since there is no LATmin data
     if day_n < n_days_before:
         struct_info = {}
+        if save_LATmin == 1:
+            LATmin_arr.append([np.nan for i in lon])
 
     #### Full analysis
     else:
