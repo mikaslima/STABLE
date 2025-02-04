@@ -84,6 +84,7 @@ full_ridges         |  int          |   0,1       |   0                         
 full_polar          |  int          |   0,1       |   0                                  |    (0) Consider events that only have polar blocks (1) Disregard these types of events
 catalogue_single    |  int          |   0,1       |   0                                  |    (0) Catalogue full events and their daily components (1) Catalogue single occurrences only
 get_masks           |  int          |   0,1       |   0,1                                |    (0) Disregard masks (1) Retrieve the masks of the events and the 2D intensity index
+save_latmin         |  int          |   0,1       |   0,1                                |    (0) Do not save LATmin data (1) Save LATmin data as netcdf
 -----------------------------------------------------------------------------------------------------------------
 
 # Post processing examples
