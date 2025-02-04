@@ -43,6 +43,7 @@ horizontal_LATmin = int(get_namelist_var('horizontal_LATmin'))         # 1 - mak
 omega_hybrid_method = int(get_namelist_var('omega_hybrid_method'))     # 1 - Simple distinction between omega and hybrid as described in Sousa et al. (2021), 2 - New distinction method with hybrids in mixed systems
 consider_polar = int(get_namelist_var('consider_polar'))               # 1 - Consider regions poleward of 90-delta as Sousa et al. (2021), 2 - Consider regions poleward of 90-delta, 3 - Do not consider regions poleward of 90-delta
 lat_polar_circle = float(get_namelist_var('lat_polar_circle'))         # Latitude (decimal) of the polar circle  to be considered
+save_LATmin = int(get_namelist_var('save_latmin'))                     # Save the LATmin values in netcdf
 
 #### Establish latitude delta of analysis for gradient computation
 delta = int(get_namelist_var('delta')) # degrees south or north
@@ -285,6 +286,9 @@ area = area_matrix(lon, lat, res)
 #%% 4. Daily data retrieval and save
 data_dict = {}
 struct_array_tosave = np.zeros((len(time),len(lat),len(lon)))
+if save_LATmin == 1:
+    LATmin_arr = []
+
 for day_n in tqdm(range(len(time))):
 
     #### First n_days_before days do not count since there is no LATmin data
@@ -300,6 +304,8 @@ for day_n in tqdm(range(len(time))):
         elif horizontal_LATmin == 2:
             # LATmin_day, mean_val = compute_moving_LATmin(day_n)
             LATmin_day, mean_val = compute_moving_LATmin(day_n)
+        if save_LATmin == 1:
+            LATmin_arr.append(LATmin_day)
 
         #### Retrieve daily data
         data_in_day = original_array[day_n]
@@ -614,14 +620,24 @@ for day_n in tqdm(range(len(time))):
     data_dict[time[day_n].astype(str)[:10]] = struct_info
 
 
-#%% 5. Save final netcdf
+#%% 5. Save final data
+if save_LATmin == 1:
+    LATmin_arr = np.array(LATmin_arr)
+    
+    data_latmin = xr.Dataset(
+            data_vars = dict(Structs=(['time', 'lon'], LATmin_arr)),
+            coords = dict(time=time, lon=lon),
+            attrs = dict(description='LATmin inspired by Sousa et al 2021, altered by Miguel Lima, for more info please visit the GitHub page',
+                         units='deg lat')
+            )
+    data_latmin.to_netcdf(f'../Data/Output_data/01-LATmin_{year_i}_{year_f}_{region}.nc')
+
 data = xr.Dataset(
     data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave.astype(np.float32))),
     coords = dict(time=time, lat=lat, lon=lon),
     attrs = dict(description='Structures inspired by Sousa et al 2021, altered by Miguel Lima',
-                  units='Structure type in associated pkl file')
+                 units='Structure type in associated pkl file')
     )
-
 data.to_netcdf(f'../Data/Output_data/01-StructMasks_{year_i}_{year_f}_{region}.nc')
 
 #### Save pkl file with the dictionary to see the type of each structure
