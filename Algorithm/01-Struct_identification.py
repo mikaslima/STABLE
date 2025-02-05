@@ -627,7 +627,7 @@ if save_LATmin == 1:
     LATmin_arr = np.array(LATmin_arr)
     
     data_latmin = xr.Dataset(
-            data_vars = dict(Structs=(['time', 'lon'], LATmin_arr)),
+            data_vars = dict(latmin=(['time', 'lon'], LATmin_arr)),
             coords = dict(time=time, lon=lon),
             attrs = dict(description='LATmin inspired by Sousa et al 2021, altered by Miguel Lima, for more info please visit the GitHub page',
                          units='deg lat')
