@@ -85,6 +85,7 @@ full_polar          |  int          |   0,1       |   0                         
 catalogue_single    |  int          |   0,1       |   0                                  |    (0) Catalogue full events and their daily components (1) Catalogue single occurrences only
 get_masks           |  int          |   0,1       |   0,1                                |    (0) Disregard masks (1) Retrieve the masks of the events and the 2D intensity index
 save_latmin         |  int          |   0,1       |   0,1                                |    (0) Do not save LATmin data (1) Save LATmin data as netcdf
+get_type            |  int          |   0,1       |   0,1                                |    (0) Do not produce netcdf with blocking types (1) Save netcdf with local, structure, and event type: the hundreth represents the event type (100-Ridge; 200-Omega; 300-Hybrid; 400-Rex; 500-Polar), the tenth the daily structure type (10-Ridge; 20-Omega; 30-Hybrid; 40-Rex; 50-Polar), and the unit is the local type (1-Ridge; 2-Omega; 3-Rex)
 -----------------------------------------------------------------------------------------------------------------
 
 # Post processing examples
