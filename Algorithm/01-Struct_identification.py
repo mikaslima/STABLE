@@ -44,6 +44,7 @@ omega_hybrid_method = int(get_namelist_var('omega_hybrid_method'))     # 1 - Sim
 consider_polar = int(get_namelist_var('consider_polar'))               # 1 - Consider regions poleward of 90-delta as Sousa et al. (2021), 2 - Consider regions poleward of 90-delta, 3 - Do not consider regions poleward of 90-delta
 lat_polar_circle = float(get_namelist_var('lat_polar_circle'))         # Latitude (decimal) of the polar circle  to be considered
 save_LATmin = int(get_namelist_var('save_latmin'))                     # Save the LATmin values in netcdf
+save_localtype = int(get_namelist_var('get_type'))                     # Save local type masks
 
 #### Establish latitude delta of analysis for gradient computation
 delta = int(get_namelist_var('delta')) # degrees south or north
@@ -286,6 +287,9 @@ area = area_matrix(lon, lat, res)
 #%% 4. Daily data retrieval and save
 data_dict = {}
 struct_array_tosave = np.zeros((len(time),len(lat),len(lon)))
+if save_localtype == 1:
+    localtype_tosave = np.zeros((len(time),len(lat),len(lon)))
+
 if save_LATmin == 1:
     LATmin_arr = []
 
@@ -372,8 +376,8 @@ for day_n in tqdm(range(len(time))):
         #### Change struct array to save pixel types
         struct_array = np.zeros((len(lat),len(lon)), dtype = int)
         struct_array[Ridge == 1] = 1
-        struct_array[Rex == 1] = 2
-        struct_array[Omega == 1] = 3
+        struct_array[Omega == 1] = 2
+        struct_array[Rex == 1] = 3
 
         #### Check and save structures that obey the daily rules
         #### Identify continuous structures
@@ -421,14 +425,14 @@ for day_n in tqdm(range(len(time))):
                 indv_iso_struct = indv*struct_array
 
                 #### Latitudinally extend rex region
-                rex_longs = np.unique(np.where(indv_iso_struct == 2)[1])
+                rex_longs = np.unique(np.where(indv_iso_struct == 3)[1])
                 indv_coords = np.where(indv == 1)
                 indv_lat_tofill = []; indv_lon_tofill = []
                 for i,j in zip(indv_coords[0], indv_coords[1]):
                     if j in rex_longs:
                         indv_lat_tofill.append(i)
                         indv_lon_tofill.append(j)
-                indv_iso_struct[indv_lat_tofill, indv_lon_tofill] = 2
+                indv_iso_struct[indv_lat_tofill, indv_lon_tofill] = 3
 
                 #### Check if Ridge or block and which type
                 indv_block = np.zeros(np.shape(indv_iso_struct))
@@ -436,7 +440,7 @@ for day_n in tqdm(range(len(time))):
                 blocked_area = int(np.sum(indv_block*area))
 
                 indv_omega = np.zeros(np.shape(indv_iso_struct))
-                indv_omega[(indv_iso_struct == 3)] = 1
+                indv_omega[(indv_iso_struct == 2)] = 1
                 omega_area = int(np.sum(indv_omega*area))
 
                 #### Check distances to LATmin (as LATmin varies with lon) and the max latitudinal extension of structure
@@ -543,14 +547,14 @@ for day_n in tqdm(range(len(time))):
                 indv_iso_struct = indv*antim_Structure
 
                 #### Latitudinally extend rex region
-                rex_longs = np.unique(np.where(indv_iso_struct == 2)[1])
+                rex_longs = np.unique(np.where(indv_iso_struct == 3)[1])
                 indv_coords = np.where(indv == 1)
                 indv_lat_tofill = []; indv_lon_tofill = []
                 for i,j in zip(indv_coords[0], indv_coords[1]):
                     if j in rex_longs:
                         indv_lat_tofill.append(i)
                         indv_lon_tofill.append(j)
-                indv_iso_struct[indv_lat_tofill, indv_lon_tofill] = 2
+                indv_iso_struct[indv_lat_tofill, indv_lon_tofill] = 3
 
                 #### Check if Ridge or block and which type
                 indv_block = np.zeros(np.shape(indv_iso_struct))
@@ -558,7 +562,7 @@ for day_n in tqdm(range(len(time))):
                 blocked_area = int(np.sum(indv_block*area))
 
                 indv_omega = np.zeros(np.shape(indv_iso_struct))
-                indv_omega[(indv_iso_struct == 3)] = 1
+                indv_omega[(indv_iso_struct == 2)] = 1
                 omega_area = int(np.sum(indv_omega*area))
 
                 ### Check for the individual charachteristcs as set by Sousa et al. (2021) with new modifications
@@ -614,7 +618,11 @@ for day_n in tqdm(range(len(time))):
 
         #### Save structure data in each day
         struct_array_tosave[day_n] = struct_info['Struct_array']
-
+        
+        #### Save local types in individual file
+        if save_localtype == 1:
+            localtype_tosave[day_n] = np.where(struct_info['Struct_array'] != 0, struct_array, 0)
+        
         #### Delete structure array to save space
         del struct_info['Struct_array']
 
@@ -641,6 +649,15 @@ data = xr.Dataset(
                  units='Structure type in associated pkl file')
     )
 data.to_netcdf(f'../Data/Output_data/01-StructMasks_{year_i}_{year_f}_{region}.nc')
+
+if save_localtype == 1:
+    data = xr.Dataset(
+        data_vars = dict(localtype=(['time', 'lat', 'lon'], localtype_tosave.astype(np.float32))),
+        coords = dict(time=time, lat=lat, lon=lon),
+        attrs = dict(description='Local types of blocking inspired by Sousa et al 2021, altered by Miguel Lima',
+                     units='Structure type in associated pkl file')
+        )
+    data.to_netcdf(f'../Data/Output_data/01-LocalTypes_{year_i}_{year_f}_{region}.nc')
 
 #### Save pkl file with the dictionary to see the type of each structure
 with open(f'../Data/Output_data/01-StructTypes_{year_i}_{year_f}_{region}.pkl', 'wb') as handle:

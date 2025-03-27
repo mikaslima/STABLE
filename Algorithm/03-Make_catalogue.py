@@ -32,6 +32,7 @@ data_type = get_namelist_var('data_type')                              # Data or
 n_days_before = int(get_namelist_var('n_days_before'))                 # Number of days to be captured to compute LATmin
 catalogue_single = int(get_namelist_var('catalogue_single'))           # Catalogue full events and their daily components or single daily occurrences
 get_masks = int(get_namelist_var('get_masks'))                         # Retrieve the masks of the events and the 2D intensity index
+save_type = int(get_namelist_var('get_type'))                          # Save local type masks
 
 
 #%% 1. Functions
@@ -112,6 +113,10 @@ elif catalogue_single == 1:
     struct_mask = xr.open_dataset(f'../Data/Output_data/01-StructMasks_{year_i}_{year_f}_{region}.nc')
     struct_mask_array = struct_mask.Structs.values
 
+if save_type == 1:
+    local_types = xr.open_dataset(f'../Data/Output_data/01-LocalTypes_{year_i}_{year_f}_{region}.nc')
+    local_types_array = local_types.localtype.values
+
 #%%% 2.3. Open original z500 data
 original_data = xr.open_dataset(f'../Data/Input_data/Z500_{year_file_i}_{year_file_f}_{region}_{data_type}.nc')
 
@@ -173,7 +178,9 @@ if catalogue_single == 0:
     #### Masks for structs and 2D intensity
     if get_masks == 1:
         struct_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
-        BI_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
+        # BI_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
+        if save_type == 1:
+            type_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
     
     #%%% 4.2. Get data
     for day_n in tqdm(range(len(time))):
@@ -185,7 +192,7 @@ if catalogue_single == 0:
             
             if get_masks == 1:
                 struct_array_tosave[day_n] = dict_day['Struct_array']
-                BI_array_tosave[day_n] = Blocking_intensity_index(dict_day['Struct_array'], original_array[day_n])
+                # BI_array_tosave[day_n] = Blocking_intensity_index(dict_day['Struct_array'], original_array[day_n])
     
             for strct_id in dict_day.keys():
                 if strct_id != 'Struct_array' and strct_id not in Struct_ID:
@@ -214,7 +221,14 @@ if catalogue_single == 0:
                     Area_per_dur.append(np.nan)
                     Step.append(dict_day[strct_id]['step'])
                     Duration.append(dict_day[strct_id]['duration'])
-    
+                    
+                    #### Save the type of observation
+                    if save_type == 1 and get_masks == 1:
+                        obs_type = {'Ridge': 10, 'Omega block': 20, 'Rex block (hybrid)': 30, 'Rex block': 40, 'Rex block (polar)': 50}
+                        to_add_temp = np.where(struct_mask == 1, obs_type[dict_day[strct_id]['type']], 0)
+                        type_tosave[day_n] += to_add_temp
+                        
+                        
                     #### Maximum z500 value within the structure
                     z500 = data_in_day*struct_mask
                     z500[z500 == 0] = np.nan
@@ -300,7 +314,13 @@ if catalogue_single == 0:
                         Area_per_dur.append(np.round(overlap_area/area_after,3))
                         Step.append(dict_day_after[strct_id]['step'])
                         Duration.append(dict_day_after[strct_id]['duration'])
-    
+                        
+                        #### Save the type of observation
+                        if save_type == 1 and get_masks == 1:
+                            obs_type = {'Ridge': 10, 'Omega block': 20, 'Rex block (hybrid)': 30, 'Rex block': 40, 'Rex block (polar)': 50}
+                            to_add_temp = np.where(struct_mask_after == 1, obs_type[dict_day_after[strct_id]['type']], 0)
+                            type_tosave[day_n+t] += to_add_temp
+                        
                         z500 = data_in_day*struct_mask_after
                         z500[z500 == 0] = np.nan
                         zmax = np.nanmax(z500)
@@ -418,15 +438,15 @@ if catalogue_single == 0:
     if get_masks == 1:
         if region == 'NH':
             data = xr.Dataset(
-                data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave),
-                                 Intensity=(['time', 'lat', 'lon'], BI_array_tosave)),
+                data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave)),
+                                 # Intensity=(['time', 'lat', 'lon'], BI_array_tosave)),
                 coords = dict(time=time, lat=lat, lon=lon),
                 attrs = dict(description='Structures and Blocking intensity based on Sousa et al 2021')
                 )
         elif region == 'SH':
             data = xr.Dataset(
-                data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave[:,::-1,:]),
-                                 Intensity=(['time', 'lat', 'lon'], BI_array_tosave[:,::-1,:])),
+                data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave[:,::-1,:])),
+                                 # Intensity=(['time', 'lat', 'lon'], BI_array_tosave[:,::-1,:])),
                 coords = dict(time=time, lat=-lat[::-1], lon=lon),
                 attrs = dict(description='Structures and Blocking intensity based on Sousa et al 2021')
                 )
@@ -559,6 +579,35 @@ if catalogue_single == 0:
     blocks = pd.DataFrame(data = dict_to_save)
     blocks.to_csv(f'../Data/Output_data/03-Blocking_event_catalogue_{year_i}_{year_f}_{region}.csv',index=False)
 
+    #%%% 5.2. Save netcdf with local, observation, and event type
+    if save_type == 1 and get_masks == 1:
+        local_types_tosave = np.where(struct_array_tosave != 0, local_types_array, 0)+type_tosave
+        for day_n in tqdm(range(len(time))):
+            if day_n < n_days_before:
+                continue
+            else:
+                structs_in_day = np.unique(struct_array_tosave[day_n])[1:]
+                obs_type = {'Ridge': 100, 'Omega block': 200, 'Rex block (hybrid)': 300, 'Rex block': 400, 'Rex block (polar)': 500}
+                if len(structs_in_day) >= 1:
+                    for struct_i in structs_in_day:
+                        dom_type = blocks[blocks.SID.astype(int) == int(struct_i)].DOM_TYPE.values[0]
+                        temp_to_add = np.where(struct_array_tosave[day_n] == struct_i, obs_type[dom_type], 0)
+                        local_types_tosave[day_n] += temp_to_add
+        
+        if region == 'NH':
+            data = xr.Dataset(
+                data_vars = dict(btype=(['time', 'lat', 'lon'], local_types_tosave)),
+                coords = dict(time=time, lat=lat, lon=lon),
+                attrs = dict(description='Blocking type based on Sousa et al 2021 (for reference consult the README)')
+                )
+        elif region == 'SH':
+            data = xr.Dataset(
+                data_vars = dict(btype=(['time', 'lat', 'lon'], local_types_tosave[:,::-1,:])),
+                coords = dict(time=time, lat=-lat[::-1], lon=lon),
+                attrs = dict(description='Blocking type based on Sousa et al 2021 (for reference consult the README)')
+                )
+        
+        data.to_netcdf(f'../Data/Output_data/03-CatalogueMasksTypes_{year_i}_{year_f}_{region}.nc')
 
 
 #%% 6. Catalogue untracked structures
@@ -588,7 +637,9 @@ elif catalogue_single == 1:
     #### Masks for structs and 2D intensity
     if get_masks == 1:
         struct_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float64)
-        BI_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
+        # BI_array_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
+        if save_type == 1:
+            type_tosave = np.zeros((len(time),len(lat),len(lon))).astype(np.float32)
     
     #%%% 6.2. Get data
     for day_n in tqdm(range(len(time))):
@@ -601,7 +652,7 @@ elif catalogue_single == 1:
             
             if get_masks == 1:
                 struct_array_tosave[day_n] = dict_day['Struct_array']
-                BI_array_tosave[day_n] = Blocking_intensity_index(dict_day['Struct_array'], original_array[day_n])
+                # BI_array_tosave[day_n] = Blocking_intensity_index(dict_day['Struct_array'], original_array[day_n])
             
             for strct_id in dict_day.keys():
                 if strct_id != 'Struct_array' and strct_id not in Struct_ID:
@@ -631,6 +682,12 @@ elif catalogue_single == 1:
                     Day.append(int(data_string[8:10]))
                     Jul.append(int(jul_day))
                     Areas.append(int(area_start))
+                    
+                    #### Save the type of observation
+                    if save_type == 1 and get_masks == 1:
+                        obs_type = {'Ridge': 10, 'Omega block': 20, 'Rex block (hybrid)': 30, 'Rex block': 40, 'Rex block (polar)': 50}
+                        to_add_temp = np.where(struct_mask == 1, obs_type[dict_day[strct_id]['type']], 0)
+                        type_tosave[day_n] += to_add_temp
                     
                     #### Maximum z500 value within the structure
                     z500 = data_in_day*struct_mask
@@ -733,17 +790,35 @@ elif catalogue_single == 1:
     if get_masks == 1:
         if region == 'NH':
             data = xr.Dataset(
-                data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave),
-                                 Intensity=(['time', 'lat', 'lon'], BI_array_tosave)),
+                data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave)),
+                                 # Intensity=(['time', 'lat', 'lon'], BI_array_tosave)),
                 coords = dict(time=time, lat=lat, lon=lon),
-                attrs = dict(description='Structures and Blocking intensity based on Sousa et al 2021')
+                attrs = dict(description='Structures based on Sousa et al 2021')
                 )
         elif region == 'SH':
             data = xr.Dataset(
-                data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave[:,::-1,:]),
-                                 Intensity=(['time', 'lat', 'lon'], BI_array_tosave[:,::-1,:])),
+                data_vars = dict(Structs=(['time', 'lat', 'lon'], struct_array_tosave[:,::-1,:])),
+                                 # Intensity=(['time', 'lat', 'lon'], BI_array_tosave[:,::-1,:])),
                 coords = dict(time=time, lat=-lat[::-1], lon=lon),
-                attrs = dict(description='Structures and Blocking intensity based on Sousa et al 2021')
+                attrs = dict(description='Structures based on Sousa et al 2021')
                 )
         
         data.to_netcdf(f'../Data/Output_data/03-ObservationMasks_{year_i}_{year_f}_{region}.nc')
+    
+        if save_type == 1:
+            local_types_tosave = np.where(struct_array_tosave != 0, local_types_array, 0)+type_tosave
+            
+            if region == 'NH':
+                data = xr.Dataset(
+                    data_vars = dict(btype=(['time', 'lat', 'lon'], local_types_tosave)),
+                    coords = dict(time=time, lat=lat, lon=lon),
+                    attrs = dict(description='Blocking type based on Sousa et al 2021 (for reference consult the README)')
+                    )
+            elif region == 'SH':
+                data = xr.Dataset(
+                    data_vars = dict(btype=(['time', 'lat', 'lon'], local_types_tosave[:,::-1,:])),
+                    coords = dict(time=time, lat=-lat[::-1], lon=lon),
+                    attrs = dict(description='Blocking type based on Sousa et al 2021 (for reference consult the README)')
+                    )
+            
+            data.to_netcdf(f'../Data/Output_data/03-ObservationMasksTypes_{year_i}_{year_f}_{region}.nc')
