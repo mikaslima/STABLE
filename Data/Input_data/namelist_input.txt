@@ -1,11 +1,11 @@
 variable value
-year_file_i 2019
-year_file_f 2020
-date_init 2019-01-01
-date_end 2020-12-31
-res 2.5
+year_file_i 1940
+year_file_f 2024
+date_init 1940-01-01
+date_end 2024-12-31
+res 1
 region NH
-data_type NCAR
+data_type ERA5
 min_struct_area 500000
 use_max_area 0
 max_struct_area 4000000
@@ -21,5 +21,6 @@ persistence 4
 full_ridges 0
 full_polar 0
 catalogue_single 0
-get_masks 0
-save_latmin 1
+get_masks 1
+save_latmin 0
+get_type 1
