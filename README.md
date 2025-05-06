@@ -1,13 +1,15 @@
-# BLOCS: Blocking Location and Obstruction Cataloguing System
+# STABLE: SubTropical Atmospheric ridge and BLocking Events
+(STABLE has been renamed from a previous version, from BLOCS)
+
 An open-source and user-friendly Python algorithm for detecting and tracking atmospheric blockings and subtropical ridge obstruction events.
 This is a working copy in python 3.9 of the methodology presented in [Sousa et al. (2021)](https://doi.org/10.1175/JCLI-D-20-0658.1). Some alterations are available as a namelist_input.txt file.
 Questions, suggestions, and corrections: Miguel M. Lima (malima@ciencias.ulisboa.pt).
 
 [![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-# What do I need to get and run BLOCS?
+# What do I need to get and run STABLE?
 
-## To run BLOCS, you need
+## To run STABLE, you need
 
    * [![python](https://img.shields.io/badge/Python-3-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
    * [![Git: ](https://img.shields.io/badge/Git--blue)](https://git-scm.com/)
@@ -20,7 +22,7 @@ or
 
   *  [![python](https://img.shields.io/badge/Python-3-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org) and the required modules on a cluster
 
-## The packages required to run BLOCS are:
+## The packages required to run STABLE are:
   
 ```
 - numpy
@@ -34,13 +36,13 @@ or
 
 # Installation
 
-1 - Clone BLOCS repository.
+1 - Clone STABLE repository.
 
  ```
-git clone https://github.com/mikaslima/BLOCS.git
+git clone https://github.com/mikaslima/STABLE.git
   ```
 
-2 - Verify you have installed all packages requiered for BLOCS. If you use an Anaconda environment, please be sure you have activated the environment.
+2 - Verify you have installed all packages requiered for STABLE. If you use an Anaconda environment, please be sure you have activated the environment.
 
 # Running the algorithm
 
