@@ -27,7 +27,7 @@ year_i = date_init[:4]                                                 # Start y
 year_f = date_end[:4]                                                  # End year of analysis
 res = float(get_namelist_var('res'))                                   # Data resolution
 region = get_namelist_var('region')                                    # Hemisphere to be analysed
-area_threshold = float(get_namelist_var('area_threshold'))             # Overlap from structures in following days
+area_threshold = float(get_namelist_var('overlap_threshold'))          # Overlap from structures in following days
 persistence = float(get_namelist_var('persistence'))                   # Minimum number of days a structure needs to exist
 
 # Tracking method parameters (refer to REAME or ppt for further explanation):
