@@ -39,9 +39,9 @@ if use_max_area == 0:
     max_struct_area = min_struct_area*10**5                            # Consider max area as very large number if term is not consider
 
 n_days_before = int(get_namelist_var('n_days_before'))                 # Number of days to be captured to compute LATmin
-horizontal_LATmin = int(get_namelist_var('horizontal_LATmin'))         # 1 - makes the computed LATmin be the same as Sousa et al., 2021; 2 - makes the new moving LATmin based on data from the last n_days_before
+horizontal_LATmin = int(get_namelist_var('asymmetrical_LATmin'))       # 1 - makes the computed LATmin be the same as Sousa et al., 2021; 2 - makes the new moving LATmin based on data from the last n_days_before
 omega_hybrid_method = int(get_namelist_var('omega_hybrid_method'))     # 1 - Simple distinction between omega and hybrid as described in Sousa et al. (2021), 2 - New distinction method with hybrids in mixed systems
-consider_polar = int(get_namelist_var('consider_polar'))               # 1 - Consider regions poleward of 90-delta as Sousa et al. (2021), 2 - Consider regions poleward of 90-delta, 3 - Do not consider regions poleward of 90-delta
+consider_polar = int(get_namelist_var('GHGN_condition'))               # 1 - Consider regions poleward of 90-delta as Sousa et al. (2021), 2 - Consider regions poleward of 90-delta, 3 - Do not consider regions poleward of 90-delta
 lat_polar_circle = float(get_namelist_var('lat_polar_circle'))         # Latitude (decimal) of the polar circle  to be considered
 save_LATmin = int(get_namelist_var('save_latmin'))                     # Save the LATmin values in netcdf
 save_localtype = int(get_namelist_var('get_type'))                     # Save local type masks
