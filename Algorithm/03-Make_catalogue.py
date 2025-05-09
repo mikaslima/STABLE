@@ -30,7 +30,7 @@ res = float(get_namelist_var('res'))                                   # Data re
 region = get_namelist_var('region')                                    # Hemisphere to be analysed
 data_type = get_namelist_var('data_type')                              # Data origin (ERA5 or NCAR, atm)
 n_days_before = int(get_namelist_var('n_days_before'))                 # Number of days to be captured to compute LATmin
-catalogue_single = int(get_namelist_var('catalogue_single'))           # Catalogue full events and their daily components or single daily occurrences
+catalogue_single = int(get_namelist_var('catalogue_output'))           # Catalogue full events and their daily components or single daily occurrences
 get_masks = int(get_namelist_var('get_masks'))                         # Retrieve the masks of the events and the 2D intensity index
 save_type = int(get_namelist_var('get_type'))                          # Save local type masks
 
