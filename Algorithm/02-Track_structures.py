@@ -92,6 +92,8 @@ for str_dates in pd.Series(time.astype(str)).str[:10].values:
     data_dict[str_dates] = {}
     data_dict[str_dates]['Struct_array'] = np.zeros(np.shape(area), dtype=np.float32)
 
+structs_in_year = 0 # modification to the original STABLE algorithm so that it can handle start dates that are not 01-01 of a year
+
 for day_n in tqdm(range(len(time))):
     data_string = time[day_n].astype(str)[:10]
 
