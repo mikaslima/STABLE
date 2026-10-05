@@ -486,7 +486,7 @@ if catalogue_single == 0:
         Event_day.append(strct_to_eval.DAY.values[0])
         Event_latmean.append(strct_to_eval.CLAT.values.mean())
         Event_lonmean.append(strct_to_eval.CLON.values.mean())
-        Event_deslocmean.append(strct_to_eval.DESL.values.mean())
+        Event_deslocmean.append(np.nanmean(strct_to_eval.DESL.values))
         Event_duration.append(strct_to_eval.STEP.values[-1])
         Event_z500absmax.append(strct_to_eval.Z500_MAX.max())
         Event_z500absmean.append(strct_to_eval.Z500_MAX.mean())
@@ -514,7 +514,7 @@ if catalogue_single == 0:
     
         # Hybrid
         try:
-            Event_perchybrid.append(count_strcts['Rex block (block)']/len(strct_to_eval))
+            Event_perchybrid.append(count_strcts['Rex block (hybrid)']/len(strct_to_eval))
         except:
             Event_perchybrid.append(0)
     
